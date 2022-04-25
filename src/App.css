@@ -1,0 +1,28 @@
+@import url('https://fonts.googleapis.com/css2?family=Carter+One&family=Montserrat:wght@100&family=Ubuntu:wght@300&display=swap');
+.top{
+  color: red;
+}
+.navbar-brand{
+  
+  font-family:"Garamond";
+  font-size:  1.25rem;
+  font-weight: bolder;
+}
+
+.card-title{
+font-family: Lucida Console;
+}
+.card-section{
+  font-family: Lucida Handwriting;
+  background:  #6dd5ed;
+  text-decoration-color: white;
+}
+
+.row{
+  padding-top: 1.440rem;
+}
+
+.navt{
+  font-size: 1.25rem;
+  font-weight: bolder;
+}
