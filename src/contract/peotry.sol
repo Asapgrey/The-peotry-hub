@@ -120,7 +120,7 @@ contract   YouDeserveToRead {
     }
     
 
-      //  this function returns the total number of billboardss
+     
     function getpeomsLength() public view returns (uint) {
         return (peomsLength);
     }
