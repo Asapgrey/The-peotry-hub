@@ -49,7 +49,16 @@ contract   YouDeserveToRead {
     }
      mapping (uint =>  Peom) internal peoms;
     
-      
+    // events for some actions performed on the contract by users
+    event peomAdded(address indexed sender, uint peomIndex);
+    event peomBought(address indexed buyer, address seller, uint peomIndex, uint price);
+    event peomLiked(address indexed sender, uint peomIndex);
+
+    // modifier to impose a condition that only a peom owner can perform.
+    modifier checkPeomOwner(uint _index) {
+        require (peoms[_index].owner == msg.sender, "Only the owner of this peom is allowed to perform this action");
+        _;
+    }
 
      function  addPeom(
         string memory _title, 
@@ -66,8 +75,7 @@ contract   YouDeserveToRead {
           peotry.price = _price;
           peotry.forSale= true;
 
-
-  
+        emit peomAdded(msg.sender, peomsLength);
         peomsLength++;
           }
 
@@ -98,7 +106,7 @@ contract   YouDeserveToRead {
         require(peoms[_index].hasLiked[msg.sender] == false, "User can like the peom only once");
         peoms[_index].likes++;
         peoms[_index].hasLiked[msg.sender] = true;
-        
+        emit peomLiked(msg.sender, _index);
      }
 
       function buyPeom(uint _index) public payable  {
@@ -110,21 +118,24 @@ contract   YouDeserveToRead {
           ),
           "Transfer failed."
         );
-
-         peoms[_index].owner = payable(msg.sender);
+        emit peomBought(msg.sender, peoms[_index].owner, _index, peoms[_index].price);
+        peoms[_index].owner = payable(msg.sender);
          
     }
 
-    function End_Sale(uint _index) public {
+    // added require to prevent redundant transactions.
+    function End_Sale(uint _index) public checkPeomOwner(_index) {
+        require (peoms[_index].forSale == true, "The sale of this peom has already ended");
         peoms[_index].forSale = false;
     }
     
+    // function to enable the sale of a peom again.
+    function Add_to_Sale(uint _index) public checkPeomOwner(_index) {
+        require (peoms[_index].forSale == true, "This peom is already on sale");
+        peoms[_index].forSale = true;
+    }
 
-     
     function getpeomsLength() public view returns (uint) {
         return (peomsLength);
     }
 }
-
-
-
