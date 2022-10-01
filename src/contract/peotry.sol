@@ -28,9 +28,9 @@ interface IERC20Token {
 }
 
 contract YouDeserveToRead {
-
     uint256 public poemsLength = 0;
-    address internal cUsdTokenAddress = 0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1;
+    address internal cUsdTokenAddress =
+        0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1;
 
     struct Poem {
         address payable owner;
@@ -43,19 +43,17 @@ contract YouDeserveToRead {
     }
     mapping(uint256 => Poem) private poems;
 
-
-
-		/**
-			* @dev allow users to add a poem to the platform
-			* @notice Input data needs to contain only valid values 
-		 */
+    /**
+     * @dev allow users to add a poem to the platform
+     * @notice Input data needs to contain only valid values
+     */
     function addPoem(
         string calldata _title,
         string calldata _poem,
         uint256 _price
     ) public {
-				require(bytes(_title).length > 0, "Empty title");
-				require(bytes(_poem).length > 0, "Empty poem");
+        require(bytes(_title).length > 0, "Empty title");
+        require(bytes(_poem).length > 0, "Empty poem");
         Poem storage poetry = poems[poemsLength];
 
         poetry.owner = payable(msg.sender);
@@ -91,12 +89,13 @@ contract YouDeserveToRead {
         );
     }
 
-		/**
-			* @dev allow users to like a poem
-			* @notice you can only like a poem once
-		 */
+    /**
+     * @dev allow users to like a poem
+     * @notice you can only like a poem once
+     */
     function Like(uint256 _index) public {
-				Poem storage currentPoem = poems[_index];
+        Poem storage currentPoem = poems[_index];
+        require(currentPoem.owner != address(0), "Query of nonexistent poem");
         require(
             currentPoem.hasLiked[msg.sender] == false,
             "User can like the peom only once"
@@ -105,15 +104,15 @@ contract YouDeserveToRead {
         currentPoem.hasLiked[msg.sender] = true;
     }
 
-		/**
-			* @dev allow users to buy a poem that is on sale
-			* @notice Poem must be on sale
-		 */
+    /**
+     * @dev allow users to buy a poem that is on sale
+     * @notice Poem must be on sale
+     */
     function buyPoem(uint256 _index) public payable {
-				Poem storage currentPoem = poems[_index];
-				require(currentPoem.forSale, "Poem isn't on sale");
+        Poem storage currentPoem = poems[_index];
+        require(currentPoem.forSale, "Poem isn't on sale");
         require(currentPoem.owner != msg.sender, "You can't buy your own poem");
-				require(
+        require(
             IERC20Token(cUsdTokenAddress).transferFrom(
                 msg.sender,
                 currentPoem.owner,
@@ -123,12 +122,12 @@ contract YouDeserveToRead {
         );
 
         currentPoem.owner = payable(msg.sender);
-				currentPoem.forSale = false;
+        currentPoem.forSale = false;
     }
 
-		/**
-			* @dev allow poems' owners to toggle the forSale status of a poem
-		*/
+    /**
+     * @dev allow poems' owners to toggle the forSale status of a poem
+     */
     function toggleForSale(uint256 _index) public {
         poems[_index].forSale = !poems[_index].forSale;
     }
