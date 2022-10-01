@@ -1,11 +1,9 @@
- // SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: MIT
 
-pragma solidity >=0.7.0 <0.9.0;
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-
+pragma solidity >=0.8.4 <0.9.0;
 
 interface IERC20Token {
-   function transfer(address, uint256) external returns (bool);
+    function transfer(address, uint256) external returns (bool);
 
     function approve(address, uint256) external returns (bool);
 
@@ -29,102 +27,113 @@ interface IERC20Token {
     );
 }
 
-contract   YouDeserveToRead {
-    
-    
-    uint public peomsLength = 0;
-    address internal cUsdTokenAddress = 
-    0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1;
+contract YouDeserveToRead {
 
-    struct  Peom {
+    uint256 public poemsLength = 0;
+    address internal cUsdTokenAddress = 0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1;
+
+    struct Poem {
         address payable owner;
         string title;
-        string peom;
-        uint likes;
-         uint price;
-
-         mapping(address => bool) hasLiked;
-     bool forSale;
-        
+        string poem;
+        uint256 likes;
+        uint256 price;
+        mapping(address => bool) hasLiked;
+        bool forSale;
     }
-     mapping (uint =>  Peom) internal peoms;
-    
-      
-
-     function  addPeom(
-        string memory _title, 
-        string memory _peom,
-        uint _price
-
-          ) public {
-       Peom storage peotry = peoms[peomsLength];
+    mapping(uint256 => Poem) private poems;
 
 
-         peotry.owner = payable(msg.sender);
-          peotry.title = _title;
-          peotry.peom = _peom;
-          peotry.price = _price;
-          peotry.forSale= true;
 
+		/**
+			* @dev allow users to add a poem to the platform
+			* @notice Input data needs to contain only valid values 
+		 */
+    function addPoem(
+        string calldata _title,
+        string calldata _poem,
+        uint256 _price
+    ) public {
+				require(bytes(_title).length > 0, "Empty title");
+				require(bytes(_poem).length > 0, "Empty poem");
+        Poem storage poetry = poems[poemsLength];
 
-  
-        peomsLength++;
-          }
+        poetry.owner = payable(msg.sender);
+        poetry.title = _title;
+        poetry.poem = _poem;
+        poetry.price = _price;
+        poetry.forSale = true;
 
+        poemsLength++;
+    }
 
-     function getPeom(uint _index) public view returns (
-        address payable,
-        string memory,  
-        string memory,
-        uint,
-        uint,
-        bool,
-        bool
-        
-      
-    ) {
-        return (  
-            peoms[_index].owner,
-             peoms[_index].title,
-              peoms[_index].peom,
-              peoms[_index].likes,
-               peoms[_index].price,
-               peoms[_index].hasLiked[msg.sender],
-               peoms[_index].forSale
+    function getPoem(uint256 _index)
+        public
+        view
+        returns (
+            address payable,
+            string memory,
+            string memory,
+            uint256,
+            uint256,
+            bool,
+            bool
+        )
+    {
+        return (
+            poems[_index].owner,
+            poems[_index].title,
+            poems[_index].poem,
+            poems[_index].likes,
+            poems[_index].price,
+            poems[_index].hasLiked[msg.sender],
+            poems[_index].forSale
         );
     }
 
-     function Like(uint _index)public{
-        require(peoms[_index].hasLiked[msg.sender] == false, "User can like the peom only once");
-        peoms[_index].likes++;
-        peoms[_index].hasLiked[msg.sender] = true;
-        
-     }
-
-      function buyPeom(uint _index) public payable  {
+		/**
+			* @dev allow users to like a poem
+			* @notice you can only like a poem once
+		 */
+    function Like(uint256 _index) public {
+				Poem storage currentPoem = poems[_index];
         require(
-          IERC20Token(cUsdTokenAddress).transferFrom(
-            msg.sender,
-            peoms[_index].owner,
-            peoms[_index].price
-          ),
-          "Transfer failed."
+            currentPoem.hasLiked[msg.sender] == false,
+            "User can like the peom only once"
+        );
+        currentPoem.likes++;
+        currentPoem.hasLiked[msg.sender] = true;
+    }
+
+		/**
+			* @dev allow users to buy a poem that is on sale
+			* @notice Poem must be on sale
+		 */
+    function buyPoem(uint256 _index) public payable {
+				Poem storage currentPoem = poems[_index];
+				require(currentPoem.forSale, "Poem isn't on sale");
+        require(currentPoem.owner != msg.sender, "You can't buy your own poem");
+				require(
+            IERC20Token(cUsdTokenAddress).transferFrom(
+                msg.sender,
+                currentPoem.owner,
+                currentPoem.price
+            ),
+            "Transfer failed."
         );
 
-         peoms[_index].owner = payable(msg.sender);
-         
+        currentPoem.owner = payable(msg.sender);
+				currentPoem.forSale = false;
     }
 
-    function End_Sale(uint _index) public {
-        peoms[_index].forSale = false;
+		/**
+			* @dev allow poems' owners to toggle the forSale status of a poem
+		*/
+    function toggleForSale(uint256 _index) public {
+        poems[_index].forSale = !poems[_index].forSale;
     }
-    
 
-     
-    function getpeomsLength() public view returns (uint) {
-        return (peomsLength);
+    function getPoemsLength() public view returns (uint256) {
+        return (poemsLength);
     }
 }
-
-
-
